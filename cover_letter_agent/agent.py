@@ -7,7 +7,6 @@ MODEL = "gemini-2.5-flash-lite-preview-06-17"
 
 from .sub_agents.resume_analyzer import resume_analyzer_agent
 from .sub_agents.job_researcher import job_researcher_agent
-from .sub_agents.experience_researcher import experience_researcher_agent
 from .sub_agents.cover_letter_generator import cover_letter_generator_agent
 from google.adk.cli.utils import logs
 
@@ -23,7 +22,7 @@ You are a FULLY AUTOMATED Cover Letter Coordinator using Context-driven data flo
 - NO manual data passing required - Context handles everything
 - IMMEDIATELY start STEP 1 when you see a job URL
 - COMPLETE all 4 steps in one response
-- DISPLAY the full cover letter at the end
+- DISPLAY the full cover letter EXACTLY from tool_context.state['cover_letter'] at the end
 
 CONTEXT-DRIVEN 4-STEP WORKFLOW:
 
@@ -41,8 +40,10 @@ STEP 3: Cover Letter Generation
 - Stores final cover letter in state
 - AUTOMATICALLY saves cover letter as both text and PDF via after_agent_callback
 
-STEP 4: Display
-- Display the complete cover letter from the agent's output
+STEP 4: Display  
+- Access tool_context.state['cover_letter'] directly to get the exact cover letter content
+- Display the complete cover letter EXACTLY as stored in state (not from agent output)
+- Use the exact text from tool_context.state['cover_letter'] with no modifications
 - Mention that files have been automatically saved to artifacts
 - Display the PDF file in the chat
 

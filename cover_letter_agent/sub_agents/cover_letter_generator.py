@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 # Import save functions for after_agent_callback
 from ..tools.save_cover_letter import save_cover_letter_function
 from ..tools.save_cover_letter_pdf import save_cover_letter_pdf_function
-from ..schemas import CoverLetterOutput, ResumeAnalysis, JobResearch
+from ..schemas import CoverLetterOutput as CoverLetterSchema, ResumeAnalysis, JobResearch
 import json
 from datetime import datetime
 
@@ -18,17 +18,17 @@ from datetime import datetime
 MODEL = "gemini-2.5-flash-lite-preview-06-17"
 
 
-class CoverLetterOutput(BaseModel):
+class StorageResult(BaseModel):
     success: bool = Field(description="Whether the cover letter was stored successfully")
     message: str = Field(description="Success or error message")
 
 
-async def store_cover_letter(tool_context: ToolContext, cover_letter: str) -> CoverLetterOutput:
+async def store_cover_letter(tool_context: ToolContext, cover_letter: str) -> StorageResult:
     """Store the final cover letter in session state with structured data."""
     try:
-        # Create structured cover letter output
+        # Create structured cover letter output using the correct schema
         word_count = len(cover_letter.split())
-        cover_letter_output = CoverLetterOutput(
+        cover_letter_output = CoverLetterSchema(
             content=cover_letter,
             word_count=word_count,
             key_points_covered=[],  # Will be populated by the agent
@@ -42,9 +42,9 @@ async def store_cover_letter(tool_context: ToolContext, cover_letter: str) -> Co
         tool_context.state["cover_letter_structured"] = cover_letter_output.model_dump()
         
         print(f"✅ Cover letter stored in session state (length: {len(cover_letter)}, words: {word_count})")
-        return CoverLetterOutput(success=True, message="Cover letter stored successfully")
+        return StorageResult(success=True, message="Cover letter stored successfully")
     except Exception as e:
-        return CoverLetterOutput(success=False, message=str(e))
+        return StorageResult(success=False, message=str(e))
 
 
 store_letter_tool = FunctionTool(store_cover_letter)
@@ -200,16 +200,16 @@ async def after_agent_callback(callback_context: CallbackContext):
         print(f"💾 Saving cover letter as text: {base_filename}.txt")
         
         text_result = await save_cover_letter_function(
-            callback_context=callback_context,
-            filename=f"{base_filename}.txt"
+            callback_context,
+            f"{base_filename}.txt"
         )
         print(f"✅ Text save result: {text_result}")
         
         # Save as PDF using save_cover_letter_pdf_function  
         print(f"💾 Saving cover letter as PDF: {base_filename}.pdf")
         pdf_result = await save_cover_letter_pdf_function(
-            callback_context=callback_context,
-            filename=f"{base_filename}.pdf"
+            callback_context,
+            f"{base_filename}.pdf"
         )
         print(f"✅ PDF save result: {pdf_result}")
         

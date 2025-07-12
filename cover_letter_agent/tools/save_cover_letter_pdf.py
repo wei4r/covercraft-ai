@@ -232,11 +232,4 @@ async def save_cover_letter_pdf_function(callback_context, filename: str) -> Dic
 
 
 # Legacy tool wrapper - now using save_cover_letter_pdf_function directly in callbacks
-from google.adk.tools import FunctionTool, ToolContext
-
-async def save_cover_letter_pdf(filename: str, tool_context: ToolContext) -> Dict[str, Any]:
-    """Legacy wrapper for backward compatibility."""
-    return await save_cover_letter_pdf_function(tool_context, filename)
-
-save_cover_letter_pdf_tool = FunctionTool(save_cover_letter_pdf)
 

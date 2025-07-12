@@ -2,7 +2,7 @@
 
 from google.adk.agents import LlmAgent, SequentialAgent
 from google.adk.tools import FunctionTool, ToolContext
-from ..tools.web_research import web_fetch_tool, perplexity_search_tool, google_search_tool
+from ..tools.web_research import web_fetch_tool, perplexity_search_tool
 from ..schemas import JobResearch, JobDetails, CompanyInfo, JobRequirements
 import json
 from typing import Dict, Any

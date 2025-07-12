@@ -112,11 +112,3 @@ async def save_cover_letter_function(callback_context, filename: str) -> Dict[st
             'error': error_msg
         }
 
-# Legacy tool wrapper - now using save_cover_letter_function directly in callbacks
-from google.adk.tools import FunctionTool, ToolContext
-
-async def save_cover_letter(tool_context: ToolContext, filename: str):
-    """Legacy wrapper for backward compatibility."""
-    return await save_cover_letter_function(tool_context, filename)
-
-save_cover_letter_tool = FunctionTool(save_cover_letter)
