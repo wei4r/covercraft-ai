@@ -1,0 +1,109 @@
+"""PDF Reader Tool for extracting resume content from PDF files."""
+
+import os
+from pathlib import Path
+from typing import Dict, Any
+
+import fitz  # PyMuPDF
+from pydantic import BaseModel, Field
+from google.adk.tools import FunctionTool
+from google.adk.tools import ToolContext
+
+# class PDFReaderInput(BaseModel):
+#     file_path: str = Field(description="Resume filename (will look in resume/ directory) or leave empty to auto-detect", default="")
+
+
+class PDFReaderOutput(BaseModel):
+    success: bool = Field(description="Whether the PDF was successfully read")
+    content: str = Field(description="Extracted text content from the PDF", default="")
+    error_message: str = Field(description="Error message if reading failed", default="")
+    metadata: Dict[str, Any] = Field(description="PDF metadata", default_factory=dict)
+
+
+def read_pdf(tool_context: ToolContext) -> PDFReaderOutput:
+    """
+    Extract text content from a PDF file in the resume/ directory.
+    
+    Args:
+        file_path: Resume filename (will look in resume/ directory) or leave empty to auto-detect
+        
+    Returns:
+        PDFReaderOutput with extracted content and metadata
+    """
+    try:
+        # Define the resume directory path
+        resume_dir = Path(__file__).parent.parent.parent / "resume"
+        
+        pdf_files = list(resume_dir.glob("*.pdf"))
+        if not pdf_files:
+            return PDFReaderOutput(
+                success=False,
+                error_message="No PDF files found in resume/ directory"
+            )
+        full_path = pdf_files[0]
+
+        # if not file_path:
+        #     # Auto-detect first PDF file in resume directory
+        #     pdf_files = list(resume_dir.glob("*.pdf"))
+        #     if not pdf_files:
+        #         return PDFReaderOutput(
+        #             success=False,
+        #             error_message="No PDF files found in resume/ directory"
+        #         )
+        #     full_path = pdf_files[0]
+        # else:
+        #     # Handle both just filename and full path
+        #     if "/" in file_path:
+        #         # If it's already a path, use it directly
+        #         full_path = Path(file_path)
+        #     else:
+        #         # If it's just a filename, look in resume directory
+        #         full_path = resume_dir / file_path
+        
+        if not full_path.exists():
+            return PDFReaderOutput(
+                success=False,
+                error_message=f"File not found: {full_path}"
+            )
+        
+        if not str(full_path).lower().endswith('.pdf'):
+            return PDFReaderOutput(
+                success=False,
+                error_message="File must be a PDF"
+            )
+        
+        # Open and read PDF
+        doc = fitz.open(str(full_path))
+        content = ""
+        
+        for page_num in range(len(doc)):
+            page = doc[page_num]
+            content += page.get_text()
+            content += "\n\n"  # Add spacing between pages
+        
+        # Get metadata
+        metadata = {
+            "page_count": len(doc),
+            "file_size": os.path.getsize(str(full_path)),
+            "file_name": full_path.name
+        }
+        
+        doc.close()
+        
+        tool_context.state["resume_analysis"] = content
+
+        return PDFReaderOutput(
+            success=True,
+            content=content.strip(),
+            metadata=metadata
+        )
+        
+    except Exception as e:
+        return PDFReaderOutput(
+            success=False,
+            error_message=f"Error reading PDF: {str(e)}"
+        )
+
+
+# Create the FunctionTool
+pdf_reader_tool = FunctionTool(read_pdf)
