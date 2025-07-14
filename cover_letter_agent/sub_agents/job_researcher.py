@@ -15,28 +15,59 @@ MODEL = "gemini-2.5-flash"
 async def store_structured_job_research(tool_context: ToolContext, structured_data: str) -> Dict[str, Any]:
     """Store structured job research in session state."""
     try:
-        # Clean up the JSON string by removing literal newlines and fixing common issues
+        # Clean up the JSON string by handling problematic content
         cleaned_data = structured_data.strip()
         
-        # Replace literal newlines in string values with escaped newlines
-        # This is a common issue when LLMs generate JSON with actual newlines
-        import re
-        
-        # Fix newlines within JSON string values
-        def fix_newlines_in_json(text):
-            # Pattern to match string values in JSON and replace newlines with \n
-            def replace_newlines(match):
-                return match.group(0).replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+        # Try to parse JSON directly first
+        try:
+            data_dict = json.loads(cleaned_data)
+        except json.JSONDecodeError as e:
+            print(f"❌ Initial JSON parse failed: {e}")
+            print(f"❌ Problematic JSON snippet: \n{cleaned_data[:500]}...")
             
-            # Find all string values in JSON (between quotes, not keys)
-            # This regex looks for quoted strings and replaces newlines within them
-            pattern = r'"([^"\\]*(\\.[^"\\]*)*)"'
-            return re.sub(pattern, replace_newlines, text)
-        
-        cleaned_data = fix_newlines_in_json(cleaned_data)
-        
-        # Parse the JSON string to validate structure
-        data_dict = json.loads(cleaned_data)
+            # Try to fix common JSON issues
+            import re
+            
+            # Method 1: Try to fix escape sequences by removing problematic ones
+            # Replace invalid escape sequences with safe alternatives
+            fixed_data = cleaned_data
+            
+            # Remove or replace problematic escape sequences
+            # Look for backslashes followed by characters that aren't valid JSON escapes
+            def fix_invalid_escapes(text):
+                # Valid JSON escape sequences: \", \\, \/, \b, \f, \n, \r, \t, \uXXXX
+                # Replace any other \x with just x
+                result = ""
+                i = 0
+                while i < len(text):
+                    if text[i] == '\\' and i + 1 < len(text):
+                        next_char = text[i + 1]
+                        if next_char in '"\\/:bfnrt':
+                            # Valid escape sequence
+                            result += text[i:i+2]
+                            i += 2
+                        elif next_char == 'u' and i + 5 < len(text):
+                            # Unicode escape sequence
+                            result += text[i:i+6]
+                            i += 6
+                        else:
+                            # Invalid escape sequence, just keep the character
+                            result += next_char
+                            i += 2
+                    else:
+                        result += text[i]
+                        i += 1
+                return result
+            
+            fixed_data = fix_invalid_escapes(fixed_data)
+            
+            try:
+                data_dict = json.loads(fixed_data)
+                print("✅ JSON parsed successfully after escape sequence fix")
+            except json.JSONDecodeError as e2:
+                print(f"❌ JSON parse still failed after escape fix: {e2}")
+                # As last resort, try to extract just the structure we need
+                raise ValueError(f"Cannot parse JSON data: {e2}")
         
         # Add current timestamp if not provided
         if not data_dict.get("research_date"):

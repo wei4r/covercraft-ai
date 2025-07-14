@@ -150,7 +150,6 @@ def search_perplexity(tool_context: ToolContext, query: str, focus: str = "compa
             )
         }
         
-        # user_content = focus_prompts.get(focus, f"Research {query} with focus on {focus}")
         
         # Use the message structure from the working example
         messages = [
@@ -163,16 +162,14 @@ def search_perplexity(tool_context: ToolContext, query: str, focus: str = "compa
             },
             {
                 "role": "user",
-                # "content": user_content,
                 "content": "Research the company " + query + " with focus on " + focus_prompts.get(focus, focus_prompts["company_overview"])
             },
         ]
         
-        # Make actual API call to Perplexity
         response = client.chat.completions.create(
             model="sonar",
             messages=messages,
-            max_tokens=2000,
+            max_tokens=3000,
             temperature=0.2,
             stream=False
         )

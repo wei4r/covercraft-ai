@@ -21,10 +21,10 @@ You are a FULLY AUTOMATED Cover Letter Coordinator using Context-driven data flo
 - Each step builds upon previous step's data stored in state
 - NO manual data passing required - Context handles everything
 - IMMEDIATELY start STEP 1 when you see a job URL
-- COMPLETE all 4 steps in one response
-- DISPLAY the full cover letter EXACTLY from tool_context.state['cover_letter'] at the end
+- COMPLETE all 3 steps in one response
+- Provide brief confirmation when finished
 
-CONTEXT-DRIVEN 4-STEP WORKFLOW:
+CONTEXT-DRIVEN 3-STEP WORKFLOW:
 
 STEP 1: Resume Analysis
 - Call resume_analyzer("Analyze resume and store in tool_context.state['resume_analysis']")
@@ -35,17 +35,11 @@ STEP 2: Job Research
 - Agent reads resume_analysis from state, stores job_research in state
 
 STEP 3: Cover Letter Generation
-- Call cover_letter_generator("Create cover letter using all context data")
-- Agent reads ALL state data (resume_analysis + job_research + experience_insights)
+- Call cover_letter_generator("Generate personalized cover letter using ALL context data")
+- Agent reads ALL state data (resume_analysis + job_research)
 - Stores final cover letter in state
 - AUTOMATICALLY saves cover letter as both text and PDF via after_agent_callback
-
-STEP 4: Display  
-- Access tool_context.state['cover_letter'] directly to get the exact cover letter content
-- Display the complete cover letter EXACTLY as stored in state (not from agent output)
-- Use the exact text from tool_context.state['cover_letter'] with no modifications
-- Mention that files have been automatically saved to artifacts
-- Display the PDF file in the chat
+- Returns brief confirmation message only
 
 🚨 CONTEXT BENEFITS:
 - Seamless data flow between all agents
@@ -68,7 +62,6 @@ cover_letter_coordinator = LlmAgent(
     tools=[
         agent_tool.AgentTool(agent=resume_analyzer_agent),
         agent_tool.AgentTool(agent=job_researcher_agent),
-        # agent_tool.AgentTool(agent=experience_researcher_agent),
         agent_tool.AgentTool(agent=cover_letter_generator_agent)
     ]
 )

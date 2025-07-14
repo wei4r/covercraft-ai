@@ -26,6 +26,8 @@ class StorageResult(BaseModel):
 async def store_cover_letter(tool_context: ToolContext, cover_letter: str) -> StorageResult:
     """Store the final cover letter in session state with structured data."""
     try:
+        print(f"🔧 TOOL CALLED: store_cover_letter with {len(cover_letter)} characters")
+        
         # Create structured cover letter output using the correct schema
         word_count = len(cover_letter.split())
         cover_letter_output = CoverLetterSchema(
@@ -36,7 +38,8 @@ async def store_cover_letter(tool_context: ToolContext, cover_letter: str) -> St
             quantified_achievements=[],  # Will be populated by the agent
             generated_date=datetime.now().isoformat()
         )
-        
+        print("📆DATE", datetime.now().isoformat())
+
         # Store both the raw content and structured data
         tool_context.state["cover_letter"] = cover_letter
         tool_context.state["cover_letter_structured"] = cover_letter_output.model_dump()
@@ -44,6 +47,7 @@ async def store_cover_letter(tool_context: ToolContext, cover_letter: str) -> St
         print(f"✅ Cover letter stored in session state (length: {len(cover_letter)}, words: {word_count})")
         return StorageResult(success=True, message="Cover letter stored successfully")
     except Exception as e:
+        print(f"❌ Error in store_cover_letter tool: {str(e)}")
         return StorageResult(success=False, message=str(e))
 
 
@@ -121,16 +125,78 @@ STRUCTURED DATA USAGE GUIDE:
 **Skills Matching**: Cross-reference resume_analysis.skills with job_research.job_details.requirements
 
 Cover Letter Structure:
-- Header with candidate's contact information from personal_info
+
+**CRITICAL HEADER FORMATTING:**
+Create a professional header at the top with the candidate's contact information using this EXACT format with proper line breaks:
+
+```
+[Candidate's Full Name]
+
+[Email Address] | [Phone Number] | [Location]
+
+[LinkedIn Profile] | [Portfolio/Website] (if available)
+
+```
+
+Example:
+```
+John Smith
+
+john.smith@email.com | (555) 123-4567 | San Francisco, CA
+
+linkedin.com/in/johnsmith | portfolio.johnsmith.com
+
+```
+
+**REQUIREMENTS:**
+- First line: Name ONLY (no other information)
+- Second line: EMPTY (blank line for spacing)
+- Third line: Email, phone, location separated by " | "
+- Fourth line: EMPTY (blank line for spacing) 
+- Fifth line: Professional links (LinkedIn, portfolio) if available
+- Sixth line: EMPTY (blank line before rest of letter)
+
+**Structure Guidelines:**
+- Header with candidate's contact information from personal_info (use format above)
 - Professional greeting to {company_name}
 - Opening paragraph referencing specific job_title and company knowledge
 - Body paragraphs highlighting relevant work_experience and company fit  
-- Professional closing
+- Professional closing with proper signature format:
+
+**CRITICAL SIGNATURE FORMATTING:**
+End the cover letter with:
+```
+Sincerely,
+
+[Candidate's Full Name]
+```
+Use exactly this format - "Sincerely," followed by a blank line, then the candidate's name on its own line.
 
 WORKFLOW:
 1. Generate the complete cover letter using ALL structured data
-2. Call store_letter_tool with the complete letter text
-3. Return the complete cover letter for display in **Markdown format**
+2. **ABSOLUTELY MANDATORY:** Call store_letter_tool(cover_letter="[complete cover letter text]")
+3. Return ONLY a brief confirmation message
+
+**🚨 CRITICAL TOOL USAGE REQUIREMENT 🚨**
+YOU MUST CALL THE TOOL: store_letter_tool(cover_letter="[complete cover letter text here]")
+- This is NOT optional
+- The system depends on this tool call to save the cover letter
+- Without this tool call, the cover letter will be lost
+- Call the tool with the COMPLETE cover letter text as the parameter
+
+**MANDATORY TOOL CALL FORMAT:**
+```
+store_letter_tool(cover_letter="[Insert the complete cover letter text here - from header to signature]")
+```
+
+**RESPONSE FORMAT:**
+After calling the tool, respond with ONLY:
+"✅ Cover letter generated and saved successfully."
+
+**ABSOLUTELY DO NOT:**
+- Include the full cover letter in your response text
+- Skip the tool call
+- Provide any other response format
 
 """
         
@@ -146,55 +212,79 @@ WORKFLOW:
 
 
 async def after_model_callback(callback_context: CallbackContext, llm_response):
-    """Capture the model response and store it in state for saving."""
-    try:
-        print("💾 Running after_model_callback to capture cover letter")
-        
-        # Extract the text content from the LLM response
-        if llm_response and hasattr(llm_response, 'content') and llm_response.content:
-            if hasattr(llm_response.content, 'parts') and llm_response.content.parts:
-                cover_letter = llm_response.content.parts[0].text
-                if cover_letter:
-                    # Store it in state for the after_agent_callback to use
-                    callback_context.state['cover_letter'] = cover_letter
-                    print("✅ Cover letter captured from model response and stored in state")
-        
-        # Return the original response unchanged
-        return llm_response
-        
-    except Exception as e:
-        print(f"❌ ERROR in after_model_callback: {str(e)}")
-        return llm_response
+    """Simply return the LLM response unchanged."""
+    # Tools haven't executed yet at this point, so don't check for cover letter
+    return llm_response
 
 
 async def after_agent_callback(callback_context: CallbackContext):
     """Automatically save the cover letter after generation."""
     try:
         print("💾 Running after_agent_callback to save cover letter")
-        # print(f"✅ Callback context: {callback_context.state.to_dict()}")
         
         # Check if cover letter was generated and stored in state
         cover_letter = callback_context.state.get('cover_letter')
+        print(f"🔍 Cover letter in state: {'✅ Found' if cover_letter else '❌ Not found'}")
         
         if not cover_letter:
             print("❌ No cover letter found in state, skipping save")
-            return None
+            print("⚠️ This might be normal if tools haven't executed yet")
+            # Wait a moment and check again (tools might still be executing)
+            import asyncio
+            await asyncio.sleep(1)
+            cover_letter = callback_context.state.get('cover_letter')
+            if not cover_letter:
+                print("❌ Still no cover letter after waiting, skipping save")
+                return None
+            else:
+                print("✅ Found cover letter after waiting!")
+        else:
+            print("✅ Cover letter found immediately")
         
         print("✅ Cover letter found, proceeding to save")
         
-        # Extract metadata for filename generation using structured data
+        # Extract metadata for comprehensive filename generation using structured data
         job_research = callback_context.state.get("job_research", {})
+        resume_analysis = callback_context.state.get("resume_analysis", {})
+        
         job_details = job_research.get("job_details", {})
         company_name = job_details.get("company", "Unknown_Company")
+        job_title = job_details.get("job_title", "Position")
         
-        # Clean company name for filename
-        safe_company = "".join(c for c in company_name if c.isalnum() or c in (' ', '-', '_')).strip()
-        safe_company = safe_company.replace(' ', '_')
+        # Extract candidate name from resume analysis
+        candidate_name = "Candidate"
+        if isinstance(resume_analysis, dict):
+            personal_info = resume_analysis.get('personal_info', {})
+            if isinstance(personal_info, dict):
+                full_name = personal_info.get('name', 'Candidate')
+                # Use just the last name for filename
+                name_parts = full_name.split()
+                candidate_name = name_parts[-1] if name_parts else 'Candidate'
         
-        # Generate filename with timestamp
+        # Clean and limit strings for filename
+        def clean_for_filename(text, max_length=15):
+            # Remove special characters and clean
+            cleaned = "".join(c for c in text if c.isalnum() or c in (' ', '-', '_')).strip()
+            # Replace spaces with underscores
+            cleaned = cleaned.replace(' ', '_')
+            # Limit length to prevent long filenames
+            if len(cleaned) > max_length:
+                cleaned = cleaned[:max_length]
+            return cleaned
+        
+        safe_company = clean_for_filename(company_name, 20)
+        safe_job_title = clean_for_filename(job_title, 25)
+        safe_candidate = clean_for_filename(candidate_name, 15)
+        
+        # Generate descriptive but concise filename with date
         import datetime
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        base_filename = f"cover_letter_{safe_company}_{timestamp}"
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        
+        # Create a more readable filename
+        if safe_job_title and safe_company:
+            base_filename = f"{safe_candidate}_CoverLetter_{safe_company}_{date_str}"
+        else:
+            base_filename = f"{safe_candidate}_CoverLetter_{date_str}"
         
         # Save as text file using save_cover_letter_function
         print(f"💾 Saving cover letter as text: {base_filename}.txt")
@@ -217,7 +307,7 @@ async def after_agent_callback(callback_context: CallbackContext):
         callback_context.state["save_results"] = {
             "text": text_result,
             "pdf": pdf_result,
-            "timestamp": timestamp
+            "timestamp": date_str
         }
         
         print("✅ Cover letter saved successfully in both formats")

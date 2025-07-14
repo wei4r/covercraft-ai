@@ -5,65 +5,13 @@ from google.genai import types
 from typing import Dict, Any
 
 # Method 1: Using weasyprint (recommended for markdown to PDF)
-try:
-    import markdown
-    from weasyprint import HTML, CSS
-    from weasyprint.text.fonts import FontConfiguration
-    WEASYPRINT_AVAILABLE = True
-except ImportError:
-    WEASYPRINT_AVAILABLE = False
+# Disabled to avoid libgobject-2.0-0 system library issues
+WEASYPRINT_AVAILABLE = False
 
 
 def markdown_to_pdf_weasyprint(markdown_content: str) -> bytes:
     """Convert markdown to PDF using weasyprint (best quality)."""
-    
-    # Convert markdown to HTML - fallback to simple text processing if markdown not available
-    try:
-        import markdown
-        html_content = markdown.markdown(markdown_content)
-    except ImportError:
-        # Simple fallback: convert basic markdown to HTML manually
-        html_content = simple_markdown_to_html(markdown_content)
-    
-    # Add basic CSS styling
-    css_content = """
-    body {
-        font-family: Arial, sans-serif;
-        font-size: 12pt;
-        line-height: 1.5;
-        margin: 1in;
-        color: #333;
-    }
-    h1, h2, h3 {
-        color: #2c3e50;
-        margin-top: 20px;
-        margin-bottom: 10px;
-    }
-    p {
-        margin-bottom: 10px;
-        text-align: justify;
-    }
-    """
-    
-    # Create HTML document
-    html_doc = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <style>{css_content}</style>
-    </head>
-    <body>
-        {html_content}
-    </body>
-    </html>
-    """
-    
-    # Generate PDF
-    html_obj = HTML(string=html_doc)
-    pdf_bytes = html_obj.write_pdf()
-    
-    return pdf_bytes
+    raise ImportError("WeasyPrint disabled to avoid system library issues")
 
 
 def simple_markdown_to_html(markdown_content: str) -> str:
@@ -86,7 +34,7 @@ def simple_markdown_to_html(markdown_content: str) -> str:
     html_content = re.sub(r'\*(.+?)\*', r'<em>\1</em>', html_content)
     html_content = re.sub(r'_(.+?)_', r'<em>\1</em>', html_content)
     
-    # Convert line breaks to paragraphs
+    # Simple conversion - just wrap paragraphs
     paragraphs = html_content.split('\n\n')
     html_paragraphs = []
     for para in paragraphs:

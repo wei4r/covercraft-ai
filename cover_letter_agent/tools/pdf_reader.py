@@ -16,6 +16,7 @@ from google.adk.tools import ToolContext
 class PDFReaderOutput(BaseModel):
     success: bool = Field(description="Whether the PDF was successfully read")
     content: str = Field(description="Extracted text content from the PDF", default="")
+    hyperlinks: list = Field(description="Extracted hyperlinks from the PDF", default_factory=list)
     error_message: str = Field(description="Error message if reading failed", default="")
     metadata: Dict[str, Any] = Field(description="PDF metadata", default_factory=dict)
 
@@ -75,26 +76,75 @@ def read_pdf(tool_context: ToolContext) -> PDFReaderOutput:
         # Open and read PDF
         doc = fitz.open(str(full_path))
         content = ""
+        hyperlinks = []
         
         for page_num in range(len(doc)):
             page = doc[page_num]
+            
+            # Extract text content
             content += page.get_text()
             content += "\n\n"  # Add spacing between pages
+            
+            # Extract hyperlinks from this page
+            links = page.get_links()
+            for link in links:
+                if link.get('kind') == fitz.LINK_URI:  # External URI link
+                    uri = link.get('uri', '')
+                    if uri:
+                        # Get the text content within the link area
+                        rect = fitz.Rect(link['from'])
+                        link_text = page.get_textbox(rect).strip()
+                        
+                        hyperlinks.append({
+                            'url': uri,
+                            'text': link_text if link_text else uri,
+                            'page': page_num + 1,
+                            'type': 'uri'
+                        })
+                elif link.get('kind') == fitz.LINK_GOTO:  # Internal link
+                    # For internal links, we might still want to capture them
+                    rect = fitz.Rect(link['from'])
+                    link_text = page.get_textbox(rect).strip()
+                    
+                    hyperlinks.append({
+                        'url': f"internal_page_{link.get('page', 'unknown')}",
+                        'text': link_text,
+                        'page': page_num + 1,
+                        'type': 'internal'
+                    })
+        
+        # Also try to extract URLs from text using regex (for non-clickable URLs)
+        import re
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+|www\.[^\s<>"{}|\\^`\[\]]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+        text_urls = re.findall(url_pattern, content, re.IGNORECASE)
+        
+        for url in text_urls:
+            # Only add if not already in hyperlinks
+            if not any(link['url'] == url for link in hyperlinks):
+                hyperlinks.append({
+                    'url': url,
+                    'text': url,
+                    'page': 'text_extraction',
+                    'type': 'text_found'
+                })
         
         # Get metadata
         metadata = {
             "page_count": len(doc),
             "file_size": os.path.getsize(str(full_path)),
-            "file_name": full_path.name
+            "file_name": full_path.name,
+            "hyperlinks_found": len(hyperlinks)
         }
         
         doc.close()
         
         tool_context.state["resume_analysis"] = content
+        tool_context.state["resume_hyperlinks"] = hyperlinks
 
         return PDFReaderOutput(
             success=True,
             content=content.strip(),
+            hyperlinks=hyperlinks,
             metadata=metadata
         )
         
