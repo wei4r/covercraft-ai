@@ -56,13 +56,13 @@ async def before_agent_callback(callback_context: CallbackContext):
         print("📝 Cover letter generator starting")
         
         # Extract all required structured data from session state
-        resume_analysis = callback_context.state.get('resume_analysis')
+        structured_resume = callback_context.state.get('structured_resume')
         job_research = callback_context.state.get('job_research')
         
         # Check what data is available
         missing_data = []
-        if not resume_analysis:
-            missing_data.append('resume_analysis')
+        if not structured_resume:
+            missing_data.append('structured_resume')
         if not job_research:
             missing_data.append('job_research')
         
@@ -80,8 +80,8 @@ Please inform the user that this data is required to proceed."""
         
         # Extract candidate name for personalization
         candidate_name = "Unknown"
-        if isinstance(resume_analysis, dict):
-            personal_info = resume_analysis.get('personal_info', {})
+        if isinstance(structured_resume, dict):
+            personal_info = structured_resume.get('personal_info', {})
             if isinstance(personal_info, dict):
                 candidate_name = personal_info.get('name', 'Unknown')
         
@@ -102,7 +102,7 @@ You are an expert Cover Letter Generator that creates compelling, personalized c
 ## INPUT DATA
 **STRUCTURED RESUME ANALYSIS:**
 ```json
-{json.dumps(resume_analysis, indent=2)}
+{json.dumps(structured_resume, indent=2)}
 ```
 
 **STRUCTURED JOB RESEARCH:**
@@ -140,7 +140,7 @@ You are an expert Cover Letter Generator that creates compelling, personalized c
 - Include compelling hook showing company knowledge from job_research.company_info
 
 **Body Paragraph 1 (80-100 words):**
-- Highlight 2-3 most relevant achievements from resume_analysis.work_experience
+- Highlight 2-3 most relevant achievements from structured_resume.work_experience
 - Include quantifiable results (percentages, dollar amounts, scale)
 - Directly connect experience to job_research.job_details.requirements
 
@@ -164,7 +164,7 @@ Sincerely,
 ## STRATEGIC GUIDELINES
 
 **Skills Matching Protocol:**
-1. Cross-reference resume_analysis.skills with job_research.job_details.requirements
+1. Cross-reference structured_resume.skills with job_research.job_details.requirements
 2. Prioritize skills that appear in both datasets
 3. Quantify skill application with specific examples
 
@@ -174,7 +174,7 @@ Sincerely,
 - Connect personal values to company mission
 
 **Achievement Quantification:**
-- Prioritize resume_analysis.work_experience entries with measurable outcomes
+- Prioritize structured_resume.work_experience entries with measurable outcomes
 - Use specific metrics: "increased sales by 23%" not "improved sales"
 - Include scale context: team size, budget responsibility, project scope
 
@@ -240,7 +240,7 @@ async def after_agent_callback(callback_context: CallbackContext):
         
         # Extract metadata for comprehensive filename generation using structured data
         job_research = callback_context.state.get("job_research", {})
-        resume_analysis = callback_context.state.get("resume_analysis", {})
+        structured_resume = callback_context.state.get("structured_resume", {})
         
         job_details = job_research.get("job_details", {})
         company_name = job_details.get("company", "Unknown_Company")
@@ -248,8 +248,8 @@ async def after_agent_callback(callback_context: CallbackContext):
         
         # Extract candidate name from resume analysis
         candidate_name = "Candidate"
-        if isinstance(resume_analysis, dict):
-            personal_info = resume_analysis.get('personal_info', {})
+        if isinstance(structured_resume, dict):
+            personal_info = structured_resume.get('personal_info', {})
             if isinstance(personal_info, dict):
                 full_name = personal_info.get('name', 'Candidate')
                 # Use just the last name for filename
@@ -286,13 +286,15 @@ async def after_agent_callback(callback_context: CallbackContext):
             callback_context,
             f"{base_filename}.txt"
         )
-        
+        print(f"🔍 Text file saved: {text_result}")
+        print(f"🔍 Base filename: {base_filename}")
+
         # Save as PDF using save_cover_letter_pdf_function  
         pdf_result = await save_cover_letter_pdf_function(
             callback_context,
             f"{base_filename}.pdf"
         )
-        
+        print(f"🔍 PDF file saved: {pdf_result}")
         # Update state with save information
         callback_context.state["save_results"] = {
             "text": text_result,

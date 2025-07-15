@@ -3,8 +3,9 @@
 import datetime
 from google.genai import types
 from typing import Dict, Any
+from google.adk.agents.callback_context import CallbackContext
 
-async def save_cover_letter_function(callback_context, filename: str) -> Dict[str, Any]:
+async def save_cover_letter_function(callback_context:CallbackContext, filename: str) -> Dict[str, Any]:
     """
     Saves the generated cover letter as an artifact with comprehensive metadata.
     
@@ -17,8 +18,11 @@ async def save_cover_letter_function(callback_context, filename: str) -> Dict[st
     """
     try:
         # Extract cover letter content from context state
-        print(f"🔍 save_cover_letter_function called with callback_context state, filename: {filename}")
+        # print(f"🔍 save_cover_letter_function called with callback_context state, filename: {filename}")
+        # print(f"🔍 callback_context state: {callback_context.state.to_dict()}")
         cover_letter_content = callback_context.state.get("cover_letter")
+
+        # print(f"🔍 cover_letter_content: {cover_letter_content}")
         if not cover_letter_content:
             return {
                 'status': 'failed',
@@ -27,15 +31,19 @@ async def save_cover_letter_function(callback_context, filename: str) -> Dict[st
 
         # Extract metadata from context state
         job_data = callback_context.state.get("job_research", {})
-        resume_data = callback_context.state.get("resume_analysis", {})
+        print(f"🔍 Type of job_data: {type(job_data)}")
+        resume_data = callback_context.state.get("structured_resume", {})
+        print(f"🔍 Type of resume_data: {type(resume_data)}")
         
         # Extract company and job details
         job_details = job_data.get("job_details", {})
+        print(f"🔍 Type of job_details: {type(job_details)}")
         company_name = job_details.get("company", "Unknown_Company")
         job_title = job_details.get("title", "Unknown_Position")
         
         # Extract candidate details
         personal_info = resume_data.get("personal_info", {})
+        print(f"🔍 Type of personal_info: {type(personal_info)}")
         candidate_name = personal_info.get("name", "Unknown_Candidate")
         candidate_email = personal_info.get("email", "")
         
@@ -46,11 +54,7 @@ async def save_cover_letter_function(callback_context, filename: str) -> Dict[st
         safe_company = "".join(c for c in company_name if c.isalnum() or c in (' ', '-', '_')).strip()
         safe_company = safe_company.replace(' ', '_')
         
-        # Auto-generate descriptive filename if basic one provided
-        if not filename or filename == "cover_letter.txt":
-            filename = f"cover_letter_{safe_company}_{timestamp}.txt"
-        elif not filename.startswith('cover_letter_'):
-            filename = f"cover_letter_{filename}"
+        
         if not filename.endswith('.txt'):
             filename = f"{filename}.txt"
         

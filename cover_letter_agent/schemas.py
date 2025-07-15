@@ -97,7 +97,9 @@ class CoverLetterOutput(BaseModel):
 
 class SessionState(BaseModel):
     """Complete session state structure."""
-    resume_analysis: Optional[ResumeAnalysis] = Field(default=None, description="Structured resume analysis")
+    resume_content: Optional[str] = Field(default=None, description="Raw resume content")
+    resume_hyperlinks: Optional[List[str]] = Field(default=None, description="Hyperlinks found in resume")
+    structured_resume: Optional[ResumeAnalysis] = Field(default=None, description="Structured resume analysis")
     job_research: Optional[JobResearch] = Field(default=None, description="Structured job and company research")
     cover_letter: Optional[CoverLetterOutput] = Field(default=None, description="Generated cover letter")
     session_id: Optional[str] = Field(default=None, description="Session identifier")

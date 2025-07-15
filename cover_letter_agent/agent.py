@@ -27,16 +27,16 @@ You are a FULLY AUTOMATED Cover Letter Coordinator using Context-driven data flo
 CONTEXT-DRIVEN 3-STEP WORKFLOW:
 
 STEP 1: Resume Analysis
-- Call resume_analyzer("Analyze resume and store in tool_context.state['resume_analysis']")
+- Call resume_analyzer("Analyze resume and store in tool_context.state['structured_resume']")
 - Agent automatically stores structured resume data in state
 
 STEP 2: Job Research  
 - Call job_researcher("Research job [URL] using resume data from state")
-- Agent reads resume_analysis from state, stores job_research in state
+- Agent reads structured_resume from state, stores job_research in state
 
 STEP 3: Cover Letter Generation
 - Call cover_letter_generator("Generate personalized cover letter using ALL context data")
-- Agent reads ALL state data (resume_analysis + job_research)
+- Agent reads ALL state data (structured_resume + job_research)
 - Stores final cover letter in state
 - AUTOMATICALLY saves cover letter as both text and PDF via after_agent_callback
 - Returns brief confirmation message only

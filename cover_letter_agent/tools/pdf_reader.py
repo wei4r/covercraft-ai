@@ -118,7 +118,7 @@ def read_pdf(tool_context: ToolContext) -> PDFReaderOutput:
         
         doc.close()
         
-        tool_context.state["resume_analysis"] = content
+        tool_context.state["resume_content"] = content
         tool_context.state["resume_hyperlinks"] = hyperlinks
 
         return PDFReaderOutput(

@@ -13,7 +13,7 @@ MODEL = "gemini-2.5-flash"
 
 async def store_structured_job_research(tool_context: ToolContext, structured_data: str) -> Dict[str, Any]:
     """Store structured job research in session state."""
-    print(f"🔍 Storing structured job research: {structured_data}")
+    print(f"🔍 Storing structured job research")
     try:
         # Clean up the JSON string by handling problematic content
         cleaned_data = structured_data.strip()

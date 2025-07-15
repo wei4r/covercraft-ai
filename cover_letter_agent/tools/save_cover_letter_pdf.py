@@ -3,6 +3,7 @@
 import datetime
 from google.genai import types
 from typing import Dict, Any
+from google.adk.agents.callback_context import CallbackContext
 
 # Method 1: Using weasyprint (recommended for markdown to PDF)
 # Disabled to avoid libgobject-2.0-0 system library issues
@@ -97,7 +98,7 @@ def text_to_pdf_simple(text_content: str) -> bytes:
         return text_bytes
 
 
-async def save_cover_letter_pdf_function(callback_context, filename: str) -> Dict[str, Any]:
+async def save_cover_letter_pdf_function(callback_context:CallbackContext, filename: str) -> Dict[str, Any]:
     """
     Save cover letter from session state as PDF.
     

@@ -466,7 +466,7 @@ def search_perplexity(tool_context: ToolContext, query: str, focus: str = "compa
         response = client.chat.completions.create(
             model="sonar",
             messages=messages,
-            max_tokens=3000,
+            max_tokens=1500,
             temperature=0.2,
             stream=False
         )

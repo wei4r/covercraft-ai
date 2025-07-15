@@ -7,27 +7,27 @@ from ..schemas import ResumeAnalysis, PersonalInfo, WorkExperience, Education
 import json
 from typing import Dict, Any
 
-MODEL = "gemini-2.5-flash-lite-preview-06-17"
+MODEL = "gemini-2.5-flash"
 
-async def store_structured_resume_analysis(tool_context: ToolContext, structured_data: str) -> Dict[str, Any]:
+async def store_structured_resume(tool_context: ToolContext, structured_data: str) -> Dict[str, Any]:
     """Store structured resume analysis in session state."""
     try:
         # Parse the JSON string to validate structure
         data_dict = json.loads(structured_data)
         
         # Create ResumeAnalysis object to validate the structure
-        resume_analysis = ResumeAnalysis(**data_dict)
+        structured_resume = ResumeAnalysis(**data_dict)
         
         # Store the validated data in session state
-        tool_context.state["resume_analysis"] = resume_analysis.model_dump()
+        tool_context.state["structured_resume"] = structured_resume.model_dump()
         
         print(f"✅ Structured resume analysis stored in session state")
         return {
             "success": True,
             "message": "Resume analysis stored successfully",
-            "candidate_name": resume_analysis.personal_info.name,
-            "experience_years": resume_analysis.total_experience_years,
-            "skills_count": len(resume_analysis.skills)
+            "candidate_name": structured_resume.personal_info.name,
+            "experience_years": structured_resume.total_experience_years,
+            "skills_count": len(structured_resume.skills)
         }
     except json.JSONDecodeError as e:
         error_msg = f"Invalid JSON format: {str(e)}"
@@ -39,7 +39,7 @@ async def store_structured_resume_analysis(tool_context: ToolContext, structured
         return {"success": False, "error": error_msg}
 
 
-store_resume_analysis_tool = FunctionTool(store_structured_resume_analysis)
+store_structured_resume_tool = FunctionTool(store_structured_resume)
 
 
 RESUME_ANALYZER_PROMPT = """
@@ -48,13 +48,13 @@ You are a Resume Analyzer Agent that extracts structured data from resumes.
 Your responsibilities:
 1. Use pdf_reader_tool to read PDF resume files from the resume/ directory
 2. Extract and analyze ALL resume content into structured JSON format
-3. Use store_structured_resume_analysis tool to save the data in proper format
+3. Use store_structured_resume_tool tool to save the data in proper format
 4. Return a summary of the analysis completion
 
 CRITICAL WORKFLOW:
 1. IMMEDIATELY call pdf_reader_tool to read the resume
 2. Analyze and extract ALL information into the exact JSON structure below
-3. Call store_structured_resume_analysis tool with the JSON data
+3. Call store_structured_resume_tool tool with the JSON data
 4. Return a summary confirming analysis completion
 
 REQUIRED JSON STRUCTURE (must be exact):
@@ -108,5 +108,5 @@ resume_analyzer_agent = LlmAgent(
     model=MODEL,
     description="Analyzes resume content and extracts structured information for cover letter personalization",
     instruction=RESUME_ANALYZER_PROMPT,
-    tools=[pdf_reader_tool, store_resume_analysis_tool],
+    tools=[pdf_reader_tool, store_structured_resume_tool],
 )
