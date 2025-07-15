@@ -8,11 +8,12 @@ import json
 from typing import Dict, Any
 from datetime import datetime
 
-MODEL = "gemini-2.5-flash-lite-preview-06-17"
+MODEL = "gemini-2.5-flash"
 
 
 async def store_structured_job_research(tool_context: ToolContext, structured_data: str) -> Dict[str, Any]:
     """Store structured job research in session state."""
+    print(f"🔍 Storing structured job research: {structured_data}")
     try:
         # Clean up the JSON string by handling problematic content
         cleaned_data = structured_data.strip()
