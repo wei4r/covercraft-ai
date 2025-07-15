@@ -1,29 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)",
-      "Bash(python test_pdf_reader.py:*)",
-      "Bash(python test:*)",
-      "Bash(python:*)",
-      "WebFetch(domain:google.github.io)",
-      "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs",
-      "Bash(adk list:*)",
-      "Bash(adk:*)",
-      "Bash(timeout 10s adk run:*)",
-      "Bash(ls:*)",
-      "Bash(pip install:*)",
-      "Bash(chmod:*)",
-      "Bash(if [ -f \".env\" ])",
-      "Bash(then echo \"✅ .env file exists\")",
-      "Bash(else echo \"❌ .env file missing\")",
-      "Bash(fi)",
-      "mcp__filesystem__read_multiple_files",
-      "mcp__filesystem__list_directory",
-      "mcp__filesystem__read_file",
-      "Bash(rm:*)",
-      "Bash(true)",
-      "Bash(grep:*)"
+      "Bash(git rm:*)"
     ],
     "deny": []
   }

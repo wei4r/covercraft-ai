@@ -10,11 +10,10 @@ from pydantic import BaseModel, Field
 # Import save functions for after_agent_callback
 from ..tools.save_cover_letter import save_cover_letter_function
 from ..tools.save_cover_letter_pdf import save_cover_letter_pdf_function
-from ..schemas import CoverLetterOutput as CoverLetterSchema, ResumeAnalysis, JobResearch
+from ..schemas import CoverLetterOutput as CoverLetterSchema
 import json
 from datetime import datetime
 
-# MODEL = "gemini-2.5-flash"
 MODEL = "gemini-2.5-flash-lite-preview-06-17"
 
 
@@ -26,8 +25,6 @@ class StorageResult(BaseModel):
 async def store_cover_letter(tool_context: ToolContext, cover_letter: str) -> StorageResult:
     """Store the final cover letter in session state with structured data."""
     try:
-        print(f"🔧 TOOL CALLED: store_cover_letter with {len(cover_letter)} characters")
-        
         # Create structured cover letter output using the correct schema
         word_count = len(cover_letter.split())
         cover_letter_output = CoverLetterSchema(
@@ -38,8 +35,6 @@ async def store_cover_letter(tool_context: ToolContext, cover_letter: str) -> St
             quantified_achievements=[],  # Will be populated by the agent
             generated_date=datetime.now().isoformat()
         )
-        print("📆DATE", datetime.now().isoformat())
-
         # Store both the raw content and structured data
         tool_context.state["cover_letter"] = cover_letter
         tool_context.state["cover_letter_structured"] = cover_letter_output.model_dump()
@@ -47,7 +42,6 @@ async def store_cover_letter(tool_context: ToolContext, cover_letter: str) -> St
         print(f"✅ Cover letter stored in session state (length: {len(cover_letter)}, words: {word_count})")
         return StorageResult(success=True, message="Cover letter stored successfully")
     except Exception as e:
-        print(f"❌ Error in store_cover_letter tool: {str(e)}")
         return StorageResult(success=False, message=str(e))
 
 
@@ -220,28 +214,16 @@ async def after_model_callback(callback_context: CallbackContext, llm_response):
 async def after_agent_callback(callback_context: CallbackContext):
     """Automatically save the cover letter after generation."""
     try:
-        print("💾 Running after_agent_callback to save cover letter")
-        
         # Check if cover letter was generated and stored in state
         cover_letter = callback_context.state.get('cover_letter')
-        print(f"🔍 Cover letter in state: {'✅ Found' if cover_letter else '❌ Not found'}")
         
         if not cover_letter:
-            print("❌ No cover letter found in state, skipping save")
-            print("⚠️ This might be normal if tools haven't executed yet")
             # Wait a moment and check again (tools might still be executing)
             import asyncio
             await asyncio.sleep(1)
             cover_letter = callback_context.state.get('cover_letter')
             if not cover_letter:
-                print("❌ Still no cover letter after waiting, skipping save")
                 return None
-            else:
-                print("✅ Found cover letter after waiting!")
-        else:
-            print("✅ Cover letter found immediately")
-        
-        print("✅ Cover letter found, proceeding to save")
         
         # Extract metadata for comprehensive filename generation using structured data
         job_research = callback_context.state.get("job_research", {})
@@ -287,21 +269,16 @@ async def after_agent_callback(callback_context: CallbackContext):
             base_filename = f"{safe_candidate}_CoverLetter_{date_str}"
         
         # Save as text file using save_cover_letter_function
-        print(f"💾 Saving cover letter as text: {base_filename}.txt")
-        
         text_result = await save_cover_letter_function(
             callback_context,
             f"{base_filename}.txt"
         )
-        print(f"✅ Text save result: {text_result}")
         
         # Save as PDF using save_cover_letter_pdf_function  
-        print(f"💾 Saving cover letter as PDF: {base_filename}.pdf")
         pdf_result = await save_cover_letter_pdf_function(
             callback_context,
             f"{base_filename}.pdf"
         )
-        print(f"✅ PDF save result: {pdf_result}")
         
         # Update state with save information
         callback_context.state["save_results"] = {
@@ -309,8 +286,6 @@ async def after_agent_callback(callback_context: CallbackContext):
             "pdf": pdf_result,
             "timestamp": date_str
         }
-        
-        print("✅ Cover letter saved successfully in both formats")
         return None
         
     except Exception as e:

@@ -1,6 +1,6 @@
 """Job Researcher Agent - Analyzes job descriptions and researches companies."""
 
-from google.adk.agents import LlmAgent, SequentialAgent
+from google.adk.agents import LlmAgent
 from google.adk.tools import FunctionTool, ToolContext
 from ..tools.web_research import web_fetch_tool, perplexity_search_tool
 from ..schemas import JobResearch, JobDetails, CompanyInfo, JobRequirements
@@ -8,8 +8,7 @@ import json
 from typing import Dict, Any
 from datetime import datetime
 
-# MODEL = "gemini-2.5-flash-lite-preview-06-17"
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-2.5-flash-lite-preview-06-17"
 
 
 async def store_structured_job_research(tool_context: ToolContext, structured_data: str) -> Dict[str, Any]:
@@ -22,9 +21,6 @@ async def store_structured_job_research(tool_context: ToolContext, structured_da
         try:
             data_dict = json.loads(cleaned_data)
         except json.JSONDecodeError as e:
-            print(f"❌ Initial JSON parse failed: {e}")
-            print(f"❌ Problematic JSON snippet: \n{cleaned_data[:500]}...")
-            
             # Try to fix common JSON issues
             import re
             
@@ -63,9 +59,7 @@ async def store_structured_job_research(tool_context: ToolContext, structured_da
             
             try:
                 data_dict = json.loads(fixed_data)
-                print("✅ JSON parsed successfully after escape sequence fix")
             except json.JSONDecodeError as e2:
-                print(f"❌ JSON parse still failed after escape fix: {e2}")
                 # As last resort, try to extract just the structure we need
                 raise ValueError(f"Cannot parse JSON data: {e2}")
         
@@ -79,7 +73,6 @@ async def store_structured_job_research(tool_context: ToolContext, structured_da
         # Store the validated data in session state
         tool_context.state["job_research"] = job_research.model_dump()
         
-        print(f"✅ Structured job research stored in session state")
         return {
             "success": True,
             "message": "Job research stored successfully",
@@ -89,12 +82,9 @@ async def store_structured_job_research(tool_context: ToolContext, structured_da
         }
     except json.JSONDecodeError as e:
         error_msg = f"Invalid JSON format: {str(e)}"
-        print(f"❌ {error_msg}")
-        print(f"❌ Problematic JSON snippet: {structured_data[:500]}...")
         return {"success": False, "error": error_msg}
     except Exception as e:
         error_msg = f"Error storing job research: {str(e)}"
-        print(f"❌ {error_msg}")
         return {"success": False, "error": error_msg}
 
 

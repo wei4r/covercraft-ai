@@ -40,9 +40,6 @@ class ResumeAnalysis(BaseModel):
     work_experience: List[WorkExperience] = Field(default_factory=list)
     education: List[Education] = Field(default_factory=list)
     skills: List[str] = Field(default_factory=list, description="Skills and technologies")
-    # soft_skills: List[str] = Field(default_factory=list, description="Soft skills and competencies")
-    # certifications: List[str] = Field(default_factory=list, description="Professional certifications")
-    # languages: List[str] = Field(default_factory=list, description="Spoken languages")
     total_experience_years: Optional[float] = Field(default=None, description="Total years of relevant experience")
     key_achievements: List[str] = Field(default_factory=list, description="Top quantifiable achievements")
 
@@ -53,7 +50,6 @@ class JobRequirements(BaseModel):
     preferred_skills: List[str] = Field(default_factory=list, description="Nice-to-have skills")
     experience_level: Optional[str] = Field(default=None, description="Required experience level")
     education_requirements: List[str] = Field(default_factory=list, description="Education requirements")
-    # certifications: List[str] = Field(default_factory=list, description="Required/preferred certifications")
 
 
 class JobDetails(BaseModel):
@@ -67,7 +63,6 @@ class JobDetails(BaseModel):
     job_description: str = Field(description="Main job description text")
     responsibilities: List[str] = Field(default_factory=list, description="Key responsibilities")
     requirements: JobRequirements = Field(default_factory=JobRequirements)
-    # benefits: List[str] = Field(default_factory=list, description="Benefits and perks")
     application_deadline: Optional[str] = Field(default=None, description="Application deadline if mentioned")
 
 

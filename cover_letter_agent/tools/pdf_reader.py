@@ -9,8 +9,6 @@ from pydantic import BaseModel, Field
 from google.adk.tools import FunctionTool
 from google.adk.tools import ToolContext
 
-# class PDFReaderInput(BaseModel):
-#     file_path: str = Field(description="Resume filename (will look in resume/ directory) or leave empty to auto-detect", default="")
 
 
 class PDFReaderOutput(BaseModel):
@@ -42,24 +40,6 @@ def read_pdf(tool_context: ToolContext) -> PDFReaderOutput:
                 error_message="No PDF files found in resume/ directory"
             )
         full_path = pdf_files[0]
-
-        # if not file_path:
-        #     # Auto-detect first PDF file in resume directory
-        #     pdf_files = list(resume_dir.glob("*.pdf"))
-        #     if not pdf_files:
-        #         return PDFReaderOutput(
-        #             success=False,
-        #             error_message="No PDF files found in resume/ directory"
-        #         )
-        #     full_path = pdf_files[0]
-        # else:
-        #     # Handle both just filename and full path
-        #     if "/" in file_path:
-        #         # If it's already a path, use it directly
-        #         full_path = Path(file_path)
-        #     else:
-        #         # If it's just a filename, look in resume directory
-        #         full_path = resume_dir / file_path
         
         if not full_path.exists():
             return PDFReaderOutput(
