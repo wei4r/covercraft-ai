@@ -1,4 +1,4 @@
-# 🚀 AI Cover Letter Generator
+# 🚀 CoverCraft AI
 
 > **Intelligent Multi-Agent System for Personalized Cover Letter Generation**
 
@@ -6,8 +6,8 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)](https://python.org)
 [![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-FF6B35?style=flat-square)](https://ai.google.dev/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![GitHub stars](https://img.shields.io/github/stars/wei4r/cover-letter-agent?style=flat-square)](https://github.com/wei4r/cover-letter-agent/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/wei4r/cover-letter-agent?style=flat-square)](https://github.com/wei4r/cover-letter-agent/issues)
+[![GitHub stars](https://img.shields.io/github/stars/wei4r/covercraft-ai?style=flat-square)](https://github.com/wei4r/covercraft-ai/stargazers)
+
 
 An intelligent AI system that generates highly personalized, research-backed cover letters by analyzing your resume, researching target companies, and creating compelling narratives that stand out to hiring managers.
 
@@ -29,8 +29,8 @@ This project demonstrates advanced AI engineering concepts through a practical a
 
 ```bash
 # Quick start - try it yourself!
-git clone https://github.com/wei4r/cover-letter-agent.git
-cd cover-letter-agent
+git clone https://github.com/wei4r/covercraft-ai.git
+cd covercraft-ai
 poetry install
 cp .env.example .env  # Add your API keys
 adk run cover_letter_agent
@@ -98,8 +98,8 @@ graph TD
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/wei4r/cover-letter-agent.git
-cd cover-letter-agent
+git clone https://github.com/wei4r/covercraft-ai.git
+cd covercraft-ai
 
 # 2. Install dependencies (choose one)
 poetry install                # Recommended
@@ -132,7 +132,7 @@ adk run cover_letter_agent
 ```bash
 $ adk run cover_letter_agent
 
-🚀 Cover Letter Agent V2 - Multi-Agent System
+🚀 CoverCraft AI - Multi-Agent System
 ================================================
 
 Please provide a job URL to analyze and create a cover letter. For example:
@@ -153,6 +153,7 @@ Please provide a job URL to analyze and create a cover letter. For example:
 - artifacts/cover_letter_TechCorp_2024-07-15_14-30-25.pdf
 
 ✅ Cover letter generated successfully! (Total time: 87 seconds)
+⚡ Powered by CoverCraft AI
 ```
 
 > **💡 Pro Tip**: The agent uses context7 for seamless data flow between resume analysis, company research, and cover letter generation - no manual data passing required!
@@ -352,8 +353,8 @@ We welcome contributions! This project offers excellent learning opportunities i
 ### 📋 **Development Setup**
 ```bash
 # Clone your fork
-git clone https://github.com/wei4r/cover-letter-agent.git
-cd cover-letter-agent
+git clone https://github.com/wei4r/covercraft-ai.git
+cd covercraft-ai
 
 # Install development dependencies
 poetry install --group dev
@@ -378,16 +379,16 @@ Apache License 2.0 - See [LICENSE](LICENSE) file for details.
 
 ## 📞 Support & Contact
 
-- 🐛 **Bug Reports**: [Create an issue](https://github.com/wei4r/cover-letter-agent/issues)
-- 💡 **Feature Requests**: [Start a discussion](https://github.com/wei4r/cover-letter-agent/discussions)
+- 🐛 **Bug Reports**: [Create an issue](https://github.com/wei4r/covercraft-ai/issues)
+- 💡 **Feature Requests**: [Start a discussion](https://github.com/wei4r/covercraft-ai/discussions)
 - 📧 **Direct Contact**: your-email@example.com
 - 💼 **LinkedIn**: [Your LinkedIn Profile](https://linkedin.com/in/your-profile)
 
 ## 📊 Project Stats
 
-[![GitHub stars](https://img.shields.io/github/stars/wei4r/cover-letter-agent?style=social)](https://github.com/wei4r/cover-letter-agent/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/wei4r/cover-letter-agent?style=social)](https://github.com/wei4r/cover-letter-agent/network/members)
-[![GitHub watchers](https://img.shields.io/github/watchers/wei4r/cover-letter-agent?style=social)](https://github.com/wei4r/cover-letter-agent/watchers)
+[![GitHub stars](https://img.shields.io/github/stars/wei4r/cover-letter-agent?style=social)](https://github.com/wei4r/covercraft-ai/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/wei4r/cover-letter-agent?style=social)](https://github.com/wei4r/covercraft-ai/network/members)
+[![GitHub watchers](https://img.shields.io/github/watchers/wei4r/cover-letter-agent?style=social)](https://github.com/wei4r/covercraft-ai/watchers)
 
 ---
 
@@ -397,7 +398,7 @@ Apache License 2.0 - See [LICENSE](LICENSE) file for details.
 
 **Transform your job search with AI automation**
 
-[⭐ Star this repo](https://github.com/wei4r/cover-letter-agent) • [🔥 Try it now](https://github.com/wei4r/cover-letter-agent#-quick-start) • [💡 Contribute](https://github.com/wei4r/cover-letter-agent#-contributing)
+[⭐ Star this repo](https://github.com/wei4r/covercraft-ai) • [🔥 Try it now](https://github.com/wei4r/covercraft-ai#-quick-start) • [💡 Contribute](https://github.com/wei4r/covercraft-ai#-contributing)
 
 **If this project helped you land your dream job, consider giving it a star! ⭐**
 
